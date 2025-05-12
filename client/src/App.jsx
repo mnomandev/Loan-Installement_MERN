@@ -16,13 +16,24 @@ import StudentAccount from './pages/student-view/account'
 import StudentCheckout from './pages/student-view/checkout'
 import CheckAuth from './components/common/check-auth'
 import UnAuthPage from './pages/unauth/unauthpage'
+import { useSelector } from 'react-redux'
+import { checkAuth } from './store/auth-slice'
+import { useEffect } from 'react'
+import { useDispatch } from "react-redux";
 
 
 function App() {
-  const isAuthenticated = false;// Replace with actual authentication logic
-  const user = null;// Replace with actual user data logic
-  return (
+  
+  const {isAuthenticated, user, isLoading } = useSelector((state) => state.auth); 
+const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(checkAuth());
+  }, [dispatch]);
+
+  if(isLoading) return <div>Loading...</div>
+
+return(
     <div className="flex flex-col overflow-hidden bg-white">
 
       <Routes>

@@ -1,4 +1,4 @@
-import LoanForm from "../../components/common/loanForm";
+import LoanForm from "../../components/common/LoanForm";
 export default function LoansPage() {
 
   return (

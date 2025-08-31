@@ -1,25 +1,22 @@
 import { useEffect, useState } from "react";
 import { Search, Users, Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchLoans } from "../../store/loan-slice/index"; // adjust path if needed
+import { fetchLoans } from "../../store/loan-slice/index";
+import AddLoanModal from "../../components/common/AddLoanModal";
+import EditLoanModal from "../../components/common/EditLoanModal";
 
 const ManageLoans = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  // Get loans state from Redux
   const { loans = [], loading, error } = useSelector((state) => state.loan);
 
-  // Local search query
   const [search, setSearch] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editLoan, setEditLoan] = useState(null);
 
-  // Fetch loans from backend on page load
   useEffect(() => {
     dispatch(fetchLoans());
   }, [dispatch]);
 
-  // Filter loans by search query (borrower fullName, cnic, amount, status, etc.)
   const filteredLoans = loans.filter((loan) => {
     const applicant = loan.applicant || {};
     return (
@@ -34,7 +31,6 @@ const ManageLoans = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-6">
-        {/* Search Bar */}
         <div className="relative w-80">
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           <input
@@ -46,9 +42,9 @@ const ManageLoans = () => {
           />
         </div>
 
-        {/* New Loan Button */}
+        {/* Add Loan */}
         <button
-          onClick={() => navigate("/admin/add-loans")}
+          onClick={() => setShowAddModal(true)}
           className="px-4 py-2 flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-md shadow hover:opacity-90"
         >
           <Plus className="h-4 w-4" />
@@ -66,30 +62,14 @@ const ManageLoans = () => {
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  BORROWER
-                </th>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  CNIC
-                </th>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  LOAN AMOUNT
-                </th>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  MONTHLY PAYMENT
-                </th>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  TOTAL PAID
-                </th>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  REMAINING
-                </th>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  STATUS
-                </th>
-                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">
-                  ACTIONS
-                </th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">BORROWER</th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">CNIC</th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">LOAN AMOUNT</th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">MONTHLY PAYMENT</th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">TOTAL PAID</th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">REMAINING</th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">STATUS</th>
+                <th className="py-2 px-4 text-gray-600 text-sm font-semibold">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -105,49 +85,44 @@ const ManageLoans = () => {
               ) : (
                 filteredLoans.map((loan, index) => (
                   <tr key={index} className="border-b hover:bg-gray-50">
+                    <td className="py-2 px-4">{loan.borrower?.fullName || "N/A"}</td>
+                    <td className="py-2 px-4">{loan.borrower?.cnic || "N/A"}</td>
+                    <td className="py-2 px-4">{loan.item?.totalPrice || "N/A"}</td>
+                    <td className="py-2 px-4">{loan.monthlyInstallment || "-"}</td>
                     <td className="py-2 px-4">
-                      {loan.borrower?.fullName || "N/A"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {loan.borrower?.cnic || "N/A"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {loan.item?.totalPrice || "N/A"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {loan.monthlyInstallment || "-"}
-                    </td>
-                    <td className="py-2 px-4">
-                      {/* Sum of all installments paid */}
                       {loan.installments?.reduce((sum, inst) => sum + (inst.paidAmount || 0), 0) || 0}
                     </td>
                     <td className="py-2 px-4">
-                      {/* Remaining = total price - total paid */}
-                      {loan.item?.totalPrice - (loan.installments?.reduce((sum, inst) => sum + (inst.paidAmount || 0), 0) || 0)}
+                      {loan.item?.totalPrice -
+                        (loan.installments?.reduce((sum, inst) => sum + (inst.paidAmount || 0), 0) || 0)}
                     </td>
-                    <td className="py-2 px-4">
-                      {loan.status || "Pending"}
+                    <td className="py-2 px-4">{loan.status || "Pending"}</td>
+                    <td className="py-2 px-4 flex gap-2">
+                      <button
+                        onClick={() => setEditLoan(loan)} // ✅ open edit modal
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 shadow transition"
+                      >
+                        Edit
+                      </button>
+                      <button className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-gray-500 hover:bg-red-600 shadow transition">
+                        Delete
+                      </button>
                     </td>
-                    <td className="py-2 px-4 flex gap-2">  
-                      <button className="px-3 py-1.5 rounded-lg text-sm
-                       font-medium text-white bg-blue-500 hover:bg-blue-600 shadow transition">
-                         Edit
-                       </button>
-                      <button className="px-3 py-1.5 rounded-lg text-sm font-medium
-                       text-white bg-gray-500 hover:bg-red-600 shadow transition">
-                         Delete
-                        </button>
-                      </td>
                   </tr>
                 ))
               )}
             </tbody>
-
           </table>
         )}
       </div>
+
+      {/* Modals */}
+      <AddLoanModal open={showAddModal} onClose={() => setShowAddModal(false)} />
+      <EditLoanModal open={!!editLoan} loan={editLoan} onClose={() => setEditLoan(null)} />
     </div>
   );
 };
 
 export default ManageLoans;
+
+

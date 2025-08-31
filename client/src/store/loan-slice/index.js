@@ -41,17 +41,20 @@ export const fetchLoans = createAsyncThunk("/loan/fetchAll",
 
 // ✅ Update Loan
 export const updateLoan = createAsyncThunk("/loan/update",
-  async ({ id, formData }, { rejectWithValue }) => {
+  async ({ id, formData = {} }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/loans/update-loan/${id}`, formData, {
-        withCredentials: true,
-      });
-      return response.data; // returns updated loan
+      const response = await axios.put(
+        `http://localhost:5000/api/loans/update-loan/${id}`,
+        formData,
+        { withCredentials: true }
+      );
+      return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || { success: false, message: "Failed to update loan" });
     }
   }
 );
+
 
 const loanSlice = createSlice({
   name: "loan",
@@ -108,6 +111,11 @@ const loanSlice = createSlice({
       })
       .addCase(updateLoan.fulfilled, (state, action) => {
         console.log("Update Loan Fulfilled:", action.payload);
+        //remaining and status update
+        const { remaining, status } = action.payload;
+        state.loans = state.loans.map((loan) =>
+          loan._id === action.payload._id ? { ...loan, remaining, status } : loan
+        );
         state.isLoading = false;
         if (action.payload?._id) {
           state.loans = state.loans.map((loan) =>

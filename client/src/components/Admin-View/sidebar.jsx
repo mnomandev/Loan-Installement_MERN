@@ -38,6 +38,19 @@ const AdminSidebar = () => {
           <Wallet size={20} />
           Manage Loans
         </NavLink>
+        <NavLink
+          to="/admin/add-loans"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+              isActive
+                ? "bg-gray-700 text-white"
+                : "text-gray-300 hover:bg-gray-800 hover:text-white"
+            }`
+          }
+        >
+          <Wallet size={20} />
+          Add Loans
+        </NavLink>
       </nav>
     </div>
   );

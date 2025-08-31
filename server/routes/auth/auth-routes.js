@@ -8,8 +8,6 @@ const { authMiddleware } = require("../../middlewares/authMiddleware");
 
 const router = express.Router();
 
-// ⚠️ Register route should ideally be used only ONCE (for the first admin)
-// After that, you can disable/remove it in production
 router.post("/register", registerUser);
 
 // Admin login

@@ -48,7 +48,7 @@ const ManageLoans = () => {
 
         {/* New Loan Button */}
         <button
-          onClick={() => navigate("/admin/loans")}
+          onClick={() => navigate("/admin/add-loans")}
           className="px-4 py-2 flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-md shadow hover:opacity-90"
         >
           <Plus className="h-4 w-4" />
@@ -128,11 +128,16 @@ const ManageLoans = () => {
                     <td className="py-2 px-4">
                       {loan.status || "Pending"}
                     </td>
-                    <td className="py-2 px-4">
-                      <button className="text-indigo-600 hover:underline">
-                        Edit
-                      </button>
-                    </td>
+                    <td className="py-2 px-4 flex gap-2">  
+                      <button className="px-3 py-1.5 rounded-lg text-sm
+                       font-medium text-white bg-blue-500 hover:bg-blue-600 shadow transition">
+                         Edit
+                       </button>
+                      <button className="px-3 py-1.5 rounded-lg text-sm font-medium
+                       text-white bg-gray-500 hover:bg-red-600 shadow transition">
+                         Delete
+                        </button>
+                      </td>
                   </tr>
                 ))
               )}

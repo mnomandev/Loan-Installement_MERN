@@ -25,10 +25,11 @@ Input.propTypes = {
 
 export default function LoanForm({ initial }) {
   const dispatch = useDispatch();
-  const toast = useToast();
+
+  const {toast} = useToast();
   const { isLoading, error } = useSelector((state) => state.loan);
 
-  const { register, control, handleSubmit, watch } = useForm({
+  const { register, control, handleSubmit, watch, reset } = useForm({
     defaultValues: {
       officeNumber: "",
       borrower: {
@@ -71,10 +72,26 @@ export default function LoanForm({ initial }) {
   const price = watch("item.totalPrice");
   const advance = watch("item.advancePaid");
 
-  const onSubmit = (data) => {
-    dispatch(addLoan(data));
-    toast.success("Loan added successfully!");
-  };
+  const onSubmit = async (data) => {
+  try {
+    await dispatch(addLoan(data)).unwrap(); // waits for redux action to finish
+
+    toast({
+      title: "Success",
+      description: "Loan added successfully!",
+      status: "success",
+    });
+
+    reset(); // ✅ clears the form
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error?.message || "Failed to add loan.",
+      status: "error",
+    });
+  }
+};
+
 
   return (
     <form

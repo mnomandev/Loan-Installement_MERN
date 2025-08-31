@@ -51,7 +51,8 @@ function App() {
         >
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="manage-loans" element={<ManageLoans />} />
-          <Route path="loans" element={<LoansPage />} />
+          <Route path="add-loans" element={<LoansPage />} />
+          <Route path="edit-loan/:id" element={<LoansPage />} />
         </Route>
 
         {/* Fallback & Unauthorized */}

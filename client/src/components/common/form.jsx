@@ -4,8 +4,24 @@ import { Label } from "../ui/label";
 import { Select, SelectItem, SelectValue,SelectTrigger } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import PropTypes from "prop-types";
 
-
+CommonForm.propTypes = {
+    formControls: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        label: PropTypes.string.isRequired,
+        placeholder: PropTypes.string,
+        type: PropTypes.string,
+        options: PropTypes.arrayOf(PropTypes.shape({
+            id: PropTypes.string.isRequired,
+            label: PropTypes.string.isRequired
+        }))
+    })).isRequired,
+    formData: PropTypes.object.isRequired,
+    setFormData: PropTypes.func.isRequired,
+    onSubmit: PropTypes.func.isRequired,
+    buttonText: PropTypes.string
+}
 
 function CommonForm({ 
     formControls,

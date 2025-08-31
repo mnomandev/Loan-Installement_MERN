@@ -1,28 +1,26 @@
 import { Navigate, useLocation } from "react-router-dom";
 
+
+
 function CheckAuth({ isAuthenticated, user, children }) {
-    const location = useLocation();
+  const location = useLocation();
 
-    if (!isAuthenticated && !(location.pathname.includes("/login") || location.pathname.includes("/register"))) {
-        return <Navigate to="/auth/login" />
-    }
-    if (isAuthenticated && (location.pathname.includes("/login") || location.pathname.includes("/register"))){
-        if(user?.role === "teacher"){
-            return <Navigate to="/teacher/dashboard" />
-        }else{
-            return <Navigate to="/student/home" />
-        }
-    }
-    if(isAuthenticated && user?.role !== "teacher" && location.pathname.includes("teacher")){
-        return <Navigate to="/unauth-page" />
-    }
-    if(isAuthenticated && user?.role === "teacher" && location.pathname.includes("student")){
-        return <Navigate to="/teacher/dashboard" />
-    }
+  // If not logged in → redirect to login
+  if (!isAuthenticated && location.pathname !== "/auth/login" && location.pathname !== "/auth/register") {
+    return <Navigate to="/auth/login" />;
+  }
 
-    return <>
-    {children}
-    </>
+  // If logged in and tries to go to login/register → redirect to admin dashboard
+  if (isAuthenticated && (location.pathname === "/auth/login" || location.pathname === "/auth/register")) {
+    return <Navigate to="/admin/dashboard" />;
+  }
+
+  // If logged in but role is not admin → block access
+  if (isAuthenticated && user?.role !== "admin") {
+    return <Navigate to="/unauthorized" />;
+  }
+
+  return <>{children}</>;
 }
 
 export default CheckAuth;

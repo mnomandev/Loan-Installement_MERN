@@ -2,60 +2,71 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-//register
+// Register Admin (only once)
 const registerUser = async (req, res) => {
   const { userName, email, password } = req.body;
 
   try {
-    const checkUser = await User.findOne({ email });
-    if (checkUser)
-      return res.json({
+    // Check if an admin already exists
+    const existingAdmin = await User.findOne({ role: "admin" });
+    if (existingAdmin) {
+      return res.status(400).json({
         success: false,
-        message: "User Already exists with the same email! Please try again",
+        message: "Admin already exists. You cannot register another one.",
       });
+    }
+
+    // Check if email already exists
+    const checkUser = await User.findOne({ email });
+    if (checkUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already in use! Please try another.",
+      });
+    }
 
     const hashPassword = await bcrypt.hash(password, 12);
     const newUser = new User({
       userName,
       email,
       password: hashPassword,
+      role: "admin", // force role to admin
     });
 
     await newUser.save();
-    res.status(200).json({
+    res.status(201).json({
       success: true,
-      message: "Registration successful",
+      message: "Admin registered successfully",
     });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred",
     });
   }
 };
 
-//login
+// Login (Admin only)
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const checkUser = await User.findOne({ email });
-    if (!checkUser)
-      return res.json({
+    if (!checkUser || checkUser.role !== "admin") {
+      return res.status(401).json({
         success: false,
-        message: "User doesn't exists! Please register first",
+        message: "Unauthorized. Only admin can login.",
       });
+    }
 
-    const checkPasswordMatch = await bcrypt.compare(
-      password,
-      checkUser.password
-    );
-    if (!checkPasswordMatch)
-      return res.json({
+    const checkPasswordMatch = await bcrypt.compare(password, checkUser.password);
+    if (!checkPasswordMatch) {
+      return res.status(400).json({
         success: false,
         message: "Incorrect password! Please try again",
       });
+    }
 
     const token = jwt.sign(
       {
@@ -64,39 +75,37 @@ const loginUser = async (req, res) => {
         email: checkUser.email,
         userName: checkUser.userName,
       },
-      "CLIENT_SECRET_KEY",
+      process.env.JWT_SECRET || "CLIENT_SECRET_KEY",
       { expiresIn: "60m" }
     );
 
-    res.cookie("token", token, { httpOnly: true, secure: false }).json({
-      success: true,
-      message: "Logged in successfully",
-      user: {
-        email: checkUser.email,
-        role: checkUser.role,
-        id: checkUser._id,
-        userName: checkUser.userName,
-      },
-    });
+    res
+      .cookie("token", token, { httpOnly: true, secure: false })
+      .json({
+        success: true,
+        message: "Admin logged in successfully",
+        user: {
+          email: checkUser.email,
+          role: checkUser.role,
+          id: checkUser._id,
+          userName: checkUser.userName,
+        },
+      });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred",
     });
   }
 };
 
-//logout
-
+// Logout
 const logoutUser = (req, res) => {
   res.clearCookie("token").json({
     success: true,
     message: "Logged out successfully!",
   });
 };
-
-//auth middleware
-
 
 module.exports = { registerUser, loginUser, logoutUser };

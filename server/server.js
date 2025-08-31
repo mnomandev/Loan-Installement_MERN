@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -5,11 +6,12 @@ const cookieParser = require('cookie-parser');
 const authRouter = require('./routes/auth/auth-routes');
 const loanRouter = require('./routes/loan/loan-routes');
 
+    
 
-
-
-mongoose.connect("mongodb+srv://nomankhan02432:Nomankhan125@cluster0.7amjyyu.mongodb.net/").then(() =>
-    console.log("MongoDB connected")).catch((error) => console.log(error));
+// MongoDB connection using environment variable
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log("MongoDB connected"))
+    .catch((error) => console.log("MongoDB connection error:", error));
 
 const app = express();
 

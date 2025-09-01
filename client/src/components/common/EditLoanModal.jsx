@@ -18,8 +18,7 @@ export default function EditLoanModal({ open, onClose, loan }) {
         {/* Close Button */}
         <button
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-          onClick={onClose}
-        >
+          onClick={onClose}>
           <X className="w-6 h-6" />
         </button>
 

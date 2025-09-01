@@ -79,13 +79,13 @@ export default function LoanForm({ initial, onClose }) {
   try {
     if (isEditMode) {
       await dispatch(updateLoan({ id: initial._id, formData: data })).unwrap();
-
       toast({
         title: "Updated",
         description: "Loan updated successfully!",
         status: "success",
       });
-      onClose?.(); // only close modal on edit
+      // only close modal on edit
+       onClose?.();
     } else {
       await dispatch(addLoan(data)).unwrap();
 
@@ -310,7 +310,6 @@ export default function LoanForm({ initial, onClose }) {
           </table>
         </div>
       </div>
-
       {/* --- Submit --- */}
       <div className="md:col-span-2 flex gap-3 justify-end">
         <button type="submit" className="px-4 py-2 rounded-2xl shadow">

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchLoans } from "../../store/loan-slice/index";
 import AddLoanModal from "../../components/common/AddLoanModal";
 import EditLoanModal from "../../components/common/EditLoanModal";
+import { calculateLoanStats } from "../../store/utils/loanUtils"
 
 const ManageLoans = () => {
   const dispatch = useDispatch();
@@ -90,13 +91,12 @@ const ManageLoans = () => {
                     <td className="py-2 px-4">{loan.item?.totalPrice || "N/A"}</td>
                     <td className="py-2 px-4">{loan.monthlyInstallment || "-"}</td>
                     <td className="py-2 px-4">
-                      {loan.installments?.reduce((sum, inst) => sum + (inst.paidAmount || 0), 0) || 0}
+                      {calculateLoanStats(loan).totalPaid}
                     </td>
                     <td className="py-2 px-4">
-                      {loan.item?.totalPrice -
-                        (loan.installments?.reduce((sum, inst) => sum + (inst.paidAmount || 0), 0) || 0)}
+                       {calculateLoanStats(loan).remaining}
                     </td>
-                    <td className="py-2 px-4">{loan.status || "Pending"}</td>
+                    <td className="py-2 px-4"> {calculateLoanStats(loan).status}</td>
                     <td className="py-2 px-4 flex gap-2">
                       <button
                         onClick={() => setEditLoan(loan)} // ✅ open edit modal

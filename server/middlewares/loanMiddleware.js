@@ -15,7 +15,7 @@ const validateNewLoan = (req, res, next) => {
     });
   }
 
-  // Guarantor required fields (optional if you want strict validation)
+  // Guarantor required fields (⚠️ remove this if you want optional guarantors)
   if (!guarantor.fullName || !guarantor.cnic) {
     return res.status(400).json({
       success: false,
@@ -24,15 +24,27 @@ const validateNewLoan = (req, res, next) => {
   }
 
   // Item required fields
-  if (!item.itemName || !item.totalPrice) {
+  if (!item.itemName || typeof item.totalPrice !== "number" || item.totalPrice <= 0) {
     return res.status(400).json({
       success: false,
-      message: "Item name and total price are required",
+      message: "Item name and valid total price are required",
     });
+  }
+
+  // Loan terms
+  if (!body.numberOfInstallments || body.numberOfInstallments <= 0) {
+    return res.status(400).json({ success: false, message: "Number of installments is required" });
+  }
+  if (!body.monthlyInstallment || body.monthlyInstallment <= 0) {
+    return res.status(400).json({ success: false, message: "Monthly installment is required" });
+  }
+  if (!body.startDate) {
+    return res.status(400).json({ success: false, message: "Start date is required" });
   }
 
   next();
 };
+
 
 // Validation for UPDATE (lenient)
 const validateUpdateLoan = (req, res, next) => {

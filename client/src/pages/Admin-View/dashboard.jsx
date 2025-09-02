@@ -1,30 +1,57 @@
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchLoanStats } from "../../store/loan-slice/index"; // ✅ thunk
 import { DollarSign, TrendingUp, Calendar, Users } from "lucide-react";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, 
+  CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from "recharts";
+import { transformLoan } from "../../store/utils/loanUtils"; // ✅ import utils
 
 const AdminDashboard = () => {
-  // Dummy data for charts
-  const monthlyData = [
-    { month: "Jan", amount: 4000 },
-    { month: "Feb", amount: 3000 },
-    { month: "Mar", amount: 5000 },
-    { month: "Apr", amount: 2000 },
-  ];
+  const dispatch = useDispatch();
 
+  // ✅ Get stats + loans from Redux
+  const { loanStats, loans, isLoading, error } = useSelector((state) => state.loan);
+
+  // Fetch stats when dashboard loads
+  useEffect(() => {
+    dispatch(fetchLoanStats());
+  }, [dispatch]);
+
+  // 🔹 Transform loans for charts only
+  const transformedLoans = loans.map(transformLoan);
+
+  // ✅ Loan status distribution
   const loanStatusData = [
-    { name: "Active", value: 4 },
-    { name: "Completed", value: 2 },
-    { name: "Overdue", value: 1 },
+    { name: "Active", value: loanStats?.activeLoans || 0 },
+    { name: "Completed", value: transformedLoans.filter((loan) => loan.status === "Completed").length },
   ];
 
+  // ✅ Monthly collections (group by createdAt month)
+  const monthlyData = transformedLoans.reduce((acc, loan) => {
+    const month = new Date(loan.createdAt).toLocaleString("default", { month: "short" });
+    const existing = acc.find((item) => item.month === month);
+
+    if (existing) {
+      existing.amount += Number(loan.totalPaid || 0);
+    } else {
+      acc.push({ month, amount: Number(loan.totalPaid || 0) });
+    }
+    return acc;
+  }, []);
+
+  // ✅ Loan vs Payments chart
   const paymentsData = [
-    { name: "Loan Amount", value: 10000 },
-    { name: "Payments", value: 6500 },
+    { name: "Total Loan Amount", value: transformedLoans.reduce((sum, l) => sum + (l.totalPrice || 0), 0) },
+    { name: "Collected", value: loanStats?.totalCollected || 0 },
   ];
 
   const COLORS = ["#6366F1", "#22C55E", "#F59E0B"];
+
+  if (isLoading) return <p className="p-6">Loading dashboard...</p>;
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
     <div className="p-6 space-y-6">
@@ -34,28 +61,28 @@ const AdminDashboard = () => {
           <DollarSign className="text-blue-500 w-8 h-8" />
           <div>
             <p className="text-sm text-gray-500">Total Loans</p>
-            <h3 className="text-xl font-bold">₨0</h3>
+            <h3 className="text-xl font-bold">{loanStats?.totalLoans || 0}</h3>
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow p-4 flex items-center gap-4">
           <TrendingUp className="text-green-500 w-8 h-8" />
           <div>
             <p className="text-sm text-gray-500">Collected</p>
-            <h3 className="text-xl font-bold">₨0</h3>
+            <h3 className="text-xl font-bold">₨{(loanStats?.totalCollected || 0).toLocaleString()}</h3>
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow p-4 flex items-center gap-4">
           <Calendar className="text-orange-500 w-8 h-8" />
           <div>
             <p className="text-sm text-gray-500">Outstanding</p>
-            <h3 className="text-xl font-bold">₨0</h3>
+            <h3 className="text-xl font-bold">₨{(loanStats?.totalOutstanding || 0).toLocaleString()}</h3>
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow p-4 flex items-center gap-4">
           <Users className="text-purple-500 w-8 h-8" />
           <div>
             <p className="text-sm text-gray-500">Active Loans</p>
-            <h3 className="text-xl font-bold">0</h3>
+            <h3 className="text-xl font-bold">{loanStats?.activeLoans || 0}</h3>
           </div>
         </div>
       </div>

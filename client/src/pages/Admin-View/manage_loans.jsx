@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Search, Users, Plus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchLoans } from "../../store/loan-slice/index";
+import { calculateLoanStatus } from "../../store/utils/loanUtils";
 import AddLoanModal from "../../components/common/AddLoanModal";
 import EditLoanModal from "../../components/common/EditLoanModal";
-import { calculateLoanStats } from "../../store/utils/loanUtils"
+import DeleteLoanModal from "../../components/common/DeleteLoanModal";
 
 const ManageLoans = () => {
   const dispatch = useDispatch();
@@ -13,17 +14,19 @@ const ManageLoans = () => {
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editLoan, setEditLoan] = useState(null);
+  const [deleteLoanData, setDeleteLoanData] = useState(null);
 
   useEffect(() => {
     dispatch(fetchLoans());
   }, [dispatch]);
 
+  // ✅ Normalize borrower/applicant reference
   const filteredLoans = loans.filter((loan) => {
-    const applicant = loan.applicant || {};
+    const borrower = loan.borrower || loan.applicant || {}; // handle both cases
     return (
-      applicant.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-      applicant.cnic?.toLowerCase().includes(search.toLowerCase()) ||
-      String(loan.amount).toLowerCase().includes(search.toLowerCase()) ||
+      borrower.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      borrower.cnic?.toLowerCase().includes(search.toLowerCase()) ||
+      String(loan.amount || loan.item?.totalPrice || "").toLowerCase().includes(search.toLowerCase()) ||
       loan.status?.toLowerCase().includes(search.toLowerCase())
     );
   });
@@ -84,32 +87,36 @@ const ManageLoans = () => {
                   </td>
                 </tr>
               ) : (
-                filteredLoans.map((loan, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="py-2 px-4">{loan.borrower?.fullName || "N/A"}</td>
-                    <td className="py-2 px-4">{loan.borrower?.cnic || "N/A"}</td>
-                    <td className="py-2 px-4">{loan.item?.totalPrice || "N/A"}</td>
-                    <td className="py-2 px-4">{loan.monthlyInstallment || "-"}</td>
-                    <td className="py-2 px-4">
-                      {calculateLoanStats(loan).totalPaid}
-                    </td>
-                    <td className="py-2 px-4">
-                       {calculateLoanStats(loan).remaining}
-                    </td>
-                    <td className="py-2 px-4"> {calculateLoanStats(loan).status}</td>
-                    <td className="py-2 px-4 flex gap-2">
-                      <button
-                        onClick={() => setEditLoan(loan)} // ✅ open edit modal
-                        className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 shadow transition"
-                      >
-                        Edit
-                      </button>
-                      <button className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-gray-500 hover:bg-red-600 shadow transition">
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filteredLoans.map((loan, index) => {
+                  const borrower = loan.borrower || loan.applicant || {};
+                  const { totalPaid, remaining, status } = calculateLoanStatus(loan);
+
+                  return (
+                    <tr key={index} className="border-b hover:bg-gray-50">
+                      <td className="py-2 px-4">{borrower.fullName || "N/A"}</td>
+                      <td className="py-2 px-4">{borrower.cnic || "N/A"}</td>
+                      <td className="py-2 px-4">{loan.item?.totalPrice || loan.amount || "N/A"}</td>
+                      <td className="py-2 px-4">{loan.monthlyInstallment || "-"}</td>
+                      <td className="py-2 px-4">{totalPaid}</td>
+                      <td className="py-2 px-4">{remaining}</td>
+                      <td className="py-2 px-4">{status}</td>
+                      <td className="py-2 px-4 flex gap-2">
+                        <button
+                          onClick={() => setEditLoan(loan)}
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 shadow transition"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setDeleteLoanData(loan)}
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-gray-500 hover:bg-red-600 shadow transition"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -119,10 +126,9 @@ const ManageLoans = () => {
       {/* Modals */}
       <AddLoanModal open={showAddModal} onClose={() => setShowAddModal(false)} />
       <EditLoanModal open={!!editLoan} loan={editLoan} onClose={() => setEditLoan(null)} />
+      <DeleteLoanModal open={!!deleteLoanData} loan={deleteLoanData} onClose={() => setDeleteLoanData(null)} />
     </div>
   );
 };
 
 export default ManageLoans;
-
-

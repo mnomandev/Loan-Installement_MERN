@@ -3,26 +3,40 @@
 // ✅ Date normalizer
 export const normalizeDate = (date) => {
   if (!date) return null;
-  return new Date(date).toISOString().split("T")[0]; // YYYY-MM-DD
+  const d = new Date(date);
+  return isNaN(d) ? null : d.toISOString().split("T")[0]; // YYYY-MM-DD
 };
 
-// ✅ Loan transformer (adds derived fields)
-export const transformLoan = (loan) => {
-  const installments = loan.installments?.map((inst) => ({
-    ...inst,
-    dueDate: normalizeDate(inst.dueDate),
-    paidDate: normalizeDate(inst.paidDate),
-  })) || [];
-
-  // total paid = sum of all paid amounts
+// ✅ Loan status calculator
+export const calculateLoanStatus = (loan) => {
+  const installments = loan.installments || [];
   const totalPaid = installments.reduce(
-    (sum, inst) => sum + (inst.paidAmount || 0),
+    (sum, inst) => sum + Number(inst.paidAmount || 0),
     0
   );
 
-  const remaining = (loan.totalPrice || 0) - totalPaid;
+  const totalPrice = Number(loan.totalPrice ?? loan.item?.totalPrice ?? 0);
+  const remaining = totalPrice - totalPaid;
 
-  const status = remaining <= 0 ? "Completed" : "Pending";
+  let status = "Pending";
+  if (remaining <= 0 && totalPrice > 0) status = "Completed";
+
+  return { totalPaid, remaining, status };
+};
+
+// ✅ Loan transformer (adds derived + normalized fields)
+export const transformLoan = (loan) => {
+  const installments =
+    loan.installments?.map((inst) => ({
+      ...inst,
+      dueDate: normalizeDate(inst.dueDate),
+      paidDate: normalizeDate(inst.paidDate),
+    })) || [];
+
+  const { totalPaid, remaining, status } = calculateLoanStatus({
+    ...loan,
+    installments,
+  });
 
   return {
     ...loan,
@@ -32,21 +46,4 @@ export const transformLoan = (loan) => {
     remaining,
     status,
   };
-};
-
-//loan status helper
-export const calculateLoanStats = (loan) => {
-  const totalPaid = loan.installments?.reduce(
-    (sum, inst) => sum + (inst.paidAmount || 0),
-    0
-  ) || 0;
-
-  const totalPrice = loan.item?.totalPrice || 0;
-  const remaining = totalPrice - totalPaid;
-
-  let status = "";
-  if (remaining === 0) status = "Completed";
-  else if (totalPaid === 0) status = "Pending...";
-
-  return { totalPaid, remaining, status };
 };

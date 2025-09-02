@@ -1,16 +1,22 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { transformLoan } from "../utils/loanUtils"; // ✅ now we use transformLoan
+import { transformLoan } from "../utils/loanUtils"; // ✅ normalize schema
 
 const initialState = {
   loans: [],
+  loanStats: {
+    totalLoans: 0,
+    totalCollected: 0,
+    totalOutstanding: 0,
+    activeLoans: 0,
+  },
   isLoading: false,
   error: null,
 };
 
 // ✅ Add Loan
 export const addLoan = createAsyncThunk(
-  "/loan/add",
+  "loan/add",
   async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
@@ -29,17 +35,12 @@ export const addLoan = createAsyncThunk(
 
 // ✅ Fetch All Loans
 export const fetchLoans = createAsyncThunk(
-  "/loan/fetchAll",
+  "loan/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(
         "http://localhost:5000/api/loans/get-loans",
-        {
-          withCredentials: true,
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-          },
-        }
+        { withCredentials: true }
       );
       return response.data;
     } catch (err) {
@@ -50,9 +51,28 @@ export const fetchLoans = createAsyncThunk(
   }
 );
 
+// ✅ Fetch Loan Stats (from DB middleware)
+export const fetchLoanStats = createAsyncThunk(
+  "loan/fetchStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/loans/loan-stats",
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { success: false, message: "Failed to fetch loan stats" }
+      );
+    }
+  }
+);
+
+// ✅ Update Loan
 // ✅ Update Loan
 export const updateLoan = createAsyncThunk(
-  "/loan/update",
+  "loan/update",
   async ({ id, formData = {} }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
@@ -60,7 +80,9 @@ export const updateLoan = createAsyncThunk(
         formData,
         { withCredentials: true }
       );
-      return response.data.loan; // API returns loan object
+
+      // Always return the loan object
+      return response.data.loan;
     } catch (err) {
       return rejectWithValue(
         err.response?.data || { success: false, message: "Failed to update loan" }
@@ -68,6 +90,23 @@ export const updateLoan = createAsyncThunk(
     }
   }
 );
+// ✅ Delete Loan
+export const deleteLoan = createAsyncThunk(
+  "loan/delete",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/loans/delete-loan/${id}`,
+        { withCredentials: true }
+      );
+      return { id, ...response.data };
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { success: false, message: "Failed to delete loan" }
+      );
+    }
+  }
+);  
 
 const loanSlice = createSlice({
   name: "loan",
@@ -75,6 +114,7 @@ const loanSlice = createSlice({
   reducers: {
     clearLoans: (state) => {
       state.loans = [];
+      state.loanStats = initialState.loanStats;
       state.error = null;
     },
   },
@@ -116,26 +156,56 @@ const loanSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload?.message || "Failed to fetch loans";
       })
+       .addCase(fetchLoanStats.fulfilled, (state, action) => {
+        if (action.payload.success) {
+          state.loanStats = action.payload.data;
+        } else {
+          state.error = action.payload.message;
+        }
+      })
+      .addCase(fetchLoanStats.rejected, (state, action) => {
+        state.error = action.payload?.message;
+      })
 
       // ➡️ Update Loan
-      .addCase(updateLoan.pending, (state) => {
+       .addCase(updateLoan.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(updateLoan.fulfilled, (state, action) => {
         state.isLoading = false;
-        if (action.payload?._id) {
+        if (action.payload) {
           const updatedLoan = transformLoan(action.payload);
           state.loans = state.loans.map((loan) =>
             loan._id === updatedLoan._id ? updatedLoan : loan
           );
         } else {
-          state.error = action.payload.message || "Failed to update loan";
+          state.error = "Failed to update loan";
         }
       })
       .addCase(updateLoan.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload?.message || "Failed to update loan";
+      })
+
+      // ➡️ Delete Loan
+      .addCase(deleteLoan.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteLoan.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.loans = state.loans.filter(
+            (loan) => loan._id !== action.payload.id
+          );
+        } else {
+          state.error = action.payload.message || "Failed to delete loan";
+        }
+      })
+      .addCase(deleteLoan.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload?.message || "Failed to delete loan";
       });
   },
 });

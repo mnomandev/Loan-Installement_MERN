@@ -3,16 +3,16 @@ const mongoose = require("mongoose");
 const borrowerSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   fatherOrGuardianName: { type: String },
-  cnic: { type: String, required: true },
-  phone: { type: String },
+  cnic: { type: String, required: true, match: /^[0-9]{13}$/, index: true }, // CNIC must be 13 digits
+  phone: { type: String, match: /^[0-9]{11}$/ }, // Pakistani 11-digit phone
   address: { type: String },
 });
 
 const guarantorSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   fatherOrGuardianName: { type: String },
-  cnic: { type: String },
-  phone: { type: String },
+  cnic: { type: String, match: /^[0-9]{13}$/, index: true },
+  phone: { type: String, match: /^[0-9]{11}$/ },
   address: { type: String },
 });
 
@@ -36,12 +36,12 @@ const installmentSchema = new mongoose.Schema(
     balance: { type: Number, default: 0 },
     note: { type: String, default: "" },
   },
-  { timestamps: true } // ✅ now each installment has createdAt + updatedAt
+  { timestamps: true }
 );
 
 const LoanSchema = new mongoose.Schema(
   {
-    officeNumber: { type: String, required: true },
+    officeNumber: { type: String, required: true, index: true },
     borrower: borrowerSchema,
     guarantor: guarantorSchema,
     item: itemSchema,
@@ -50,66 +50,21 @@ const LoanSchema = new mongoose.Schema(
     startDate: { type: Date, required: true },
     termsAccepted: { type: Boolean, default: false },
     installments: [installmentSchema],
+
+    // ✅ Loan status to track at dashboard level
+    status: {
+      type: String,
+      enum: ["Pending", "Active", "Completed", "Defaulted"],
+      default: "Pending",
+      index: true, // fast queries for dashboard
+    },
+
+    // ✅ Quick totals for dashboard
+    totalCollected: { type: Number, default: 0 },
+    totalOutstanding: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
 const Loan = mongoose.model("Loan", LoanSchema);
 module.exports = { Loan };
-
-
-// const mongoose = require("mongoose");
-
-// const borrowerSchema = new mongoose.Schema({
-//   fullName: String,
-//   fatherOrGuardianName: String,
-//   cnic: String,
-//   phone: String,
-//   address: String,
-// });
-
-// const guarantorSchema = new mongoose.Schema({
-//   fullName: String,
-//   fatherOrGuardianName: String,
-//   cnic: String,
-//   phone: String,
-//   address: String,
-// });
-
-// const itemSchema = new mongoose.Schema({
-//   itemName: String,
-//   totalPrice: Number,
-//   advancePaid: Number,
-//   serialNumber: String,
-//   modelNumber: String,
-//   engineNumber: String,
-//   chassisNumber: String,
-//   registrationNumber: String,
-// });
-
-// const installmentSchema = new mongoose.Schema({
-//   dueDate: Date,
-//   installmentAmount: Number,
-//   paidDate: Date,
-//   paidAmount: Number,
-//   balance: Number,
-//   note: String,
-// });
-
-// const LoanSchema = new mongoose.Schema(
-//   {
-//     officeNumber: String,
-//     borrower: borrowerSchema,
-//     guarantor: guarantorSchema,
-//     item: itemSchema,
-//     numberOfInstallments: Number,
-//     monthlyInstallment: Number,
-//     startDate: Date,
-//     termsAccepted: { type: Boolean, default: false },
-//     installments: [installmentSchema],
-//   },
-//   { timestamps: true }
-// );
-
-// const Loan = mongoose.model("Loan", LoanSchema);
-// module.exports = { Loan };

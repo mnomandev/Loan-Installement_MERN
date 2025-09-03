@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import { Search, Users, Plus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchLoans } from "../../store/loan-slice/index";
-import { calculateLoanStatus } from "../../store/utils/loanUtils";
 import AddLoanModal from "../../components/common/AddLoanModal";
 import EditLoanModal from "../../components/common/EditLoanModal";
 import DeleteLoanModal from "../../components/common/DeleteLoanModal";
 
 const ManageLoans = () => {
   const dispatch = useDispatch();
-  const { loans = [], loading, error } = useSelector((state) => state.loan);
+  const { loans = [], isLoading, error } = useSelector((state) => state.loan);
 
   const [search, setSearch] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -20,13 +19,13 @@ const ManageLoans = () => {
     dispatch(fetchLoans());
   }, [dispatch]);
 
-  // ✅ Normalize borrower/applicant reference
+  // ✅ Normalize borrower reference & apply search
   const filteredLoans = loans.filter((loan) => {
-    const borrower = loan.borrower || loan.applicant || {}; // handle both cases
+    const borrower = loan.borrower || {};
     return (
       borrower.fullName?.toLowerCase().includes(search.toLowerCase()) ||
       borrower.cnic?.toLowerCase().includes(search.toLowerCase()) ||
-      String(loan.amount || loan.item?.totalPrice || "").toLowerCase().includes(search.toLowerCase()) ||
+      String(loan.item?.totalPrice || "").toLowerCase().includes(search.toLowerCase()) ||
       loan.status?.toLowerCase().includes(search.toLowerCase())
     );
   });
@@ -58,7 +57,7 @@ const ManageLoans = () => {
 
       {/* Table */}
       <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
-        {loading ? (
+        {isLoading ? (
           <p className="text-center text-gray-500">Loading loans...</p>
         ) : error ? (
           <p className="text-center text-red-500">Error: {error}</p>
@@ -88,18 +87,16 @@ const ManageLoans = () => {
                 </tr>
               ) : (
                 filteredLoans.map((loan, index) => {
-                  const borrower = loan.borrower || loan.applicant || {};
-                  const { totalPaid, remaining, status } = calculateLoanStatus(loan);
-
+                  const borrower = loan.borrower || {};
                   return (
                     <tr key={index} className="border-b hover:bg-gray-50">
                       <td className="py-2 px-4">{borrower.fullName || "N/A"}</td>
                       <td className="py-2 px-4">{borrower.cnic || "N/A"}</td>
-                      <td className="py-2 px-4">{loan.item?.totalPrice || loan.amount || "N/A"}</td>
+                      <td className="py-2 px-4">{loan.item?.totalPrice || "N/A"}</td>
                       <td className="py-2 px-4">{loan.monthlyInstallment || "-"}</td>
-                      <td className="py-2 px-4">{totalPaid}</td>
-                      <td className="py-2 px-4">{remaining}</td>
-                      <td className="py-2 px-4">{status}</td>
+                      <td className="py-2 px-4">{loan.totalPaid ?? 0}</td>
+                      <td className="py-2 px-4">{loan.remaining ?? 0}</td>
+                      <td className="py-2 px-4">{loan.status || "Pending"}</td>
                       <td className="py-2 px-4 flex gap-2">
                         <button
                           onClick={() => setEditLoan(loan)}

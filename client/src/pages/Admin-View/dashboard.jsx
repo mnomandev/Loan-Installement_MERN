@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchLoanStats } from "../../store/loan-slice/index"; // ✅ thunk
+import { fetchLoanStats, fetchLoans } from "../../store/loan-slice/index"; // ✅ thunk
 import { DollarSign, TrendingUp, Calendar, Users } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, 
@@ -18,6 +18,7 @@ const AdminDashboard = () => {
   // Fetch stats when dashboard loads
   useEffect(() => {
     dispatch(fetchLoanStats());
+    dispatch(fetchLoans());
   }, [dispatch]);
 
   // 🔹 Transform loans for charts only
@@ -25,26 +26,37 @@ const AdminDashboard = () => {
 
   // ✅ Loan status distribution
   const loanStatusData = [
-    { name: "Active", value: loanStats?.activeLoans || 0 },
+    { name: "Pending", value: loanStats?.activeLoans || 0 },
     { name: "Completed", value: transformedLoans.filter((loan) => loan.status === "Completed").length },
   ];
 
-  // ✅ Monthly collections (group by createdAt month)
-  const monthlyData = transformedLoans.reduce((acc, loan) => {
-    const month = new Date(loan.createdAt).toLocaleString("default", { month: "short" });
-    const existing = acc.find((item) => item.month === month);
+// ✅ Generate monthly data (always 12 months Jan–Dec)
+const monthlyData = (() => {
+  // Step 1: Start with all months = 0
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    month: new Date(0, i).toLocaleString("default", { month: "short" }),
+    amount: 0,
+  }));
 
-    if (existing) {
-      existing.amount += Number(loan.totalPaid || 0);
-    } else {
-      acc.push({ month, amount: Number(loan.totalPaid || 0) });
-    }
-    return acc;
-  }, []);
+  // Step 2: Add paid installments
+  transformedLoans.forEach((loan) => {
+    loan.installments
+      ?.filter((inst) => inst.paidAmount > 0 && inst.paidDate)
+      .forEach((inst) => {
+        const date = new Date(inst.paidDate);
+        const monthIndex = date.getMonth(); // 0 = Jan, 11 = Dec
+        months[monthIndex].amount += Number(inst.paidAmount);
+      });
+  });
+
+  return months;
+})();
+
+
 
   // ✅ Loan vs Payments chart
   const paymentsData = [
-    { name: "Total Loan Amount", value: transformedLoans.reduce((sum, l) => sum + (l.totalPrice || 0), 0) },
+    { name: "Total Loan Amount", value: (loanStats?.totalCollected + loanStats?.totalOutstanding) || 0 },
     { name: "Collected", value: loanStats?.totalCollected || 0 },
   ];
 
@@ -87,19 +99,19 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Monthly Collections */}
-      <div className="bg-white rounded-2xl shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Monthly Collections</h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis tickFormatter={(value) => `₨${value}`} />
-            <Tooltip formatter={(value) => [`₨${value}`, "Amount"]} />
-            <Bar dataKey="amount" fill="#6366F1" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+     {/* Monthly Collections */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">Monthly Collections</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis tickFormatter={(value) => `₨${value}`} />
+                  <Tooltip formatter={(value) => [`₨${value}`, "Collected"]} />
+                  <Bar dataKey="amount" fill="#6366F1" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+          </div>
 
       {/* Loan Status Distribution */}
       <div className="bg-white rounded-2xl shadow p-6">

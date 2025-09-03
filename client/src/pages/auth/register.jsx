@@ -38,7 +38,7 @@ function AuthRegister() {
            }
         })
     }
-    console.log("Form submitted with data: ", formData);
+    // console.log("Form submitted with data: ", formData);
     return (
         <div className="mx-auto w-full max-w-md space-y-6">
             <div className="text-center">

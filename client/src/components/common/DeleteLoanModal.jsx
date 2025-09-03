@@ -11,7 +11,7 @@ const DeleteLoanModal = ({ open, loan, onClose }) => {
   const { toast } = useToast();
 
   if (!open) return null;
-console.log("DeleteLoanModal opened for:", loan);
+// console.log("DeleteLoanModal opened for:", loan);
  const handleDelete = async () => {
     try {
        await dispatch(deleteLoan(loan._id)).unwrap();

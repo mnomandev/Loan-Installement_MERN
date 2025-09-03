@@ -15,10 +15,12 @@ const calculateLoanStatus = (loan) => {
     0
   );
 
-  const totalPrice = Number(loan.totalPrice ?? loan.item?.totalPrice ?? 0);
+  // ✅ now totalPrice comes only from loan.item.totalPrice
+  const totalPrice = Number(loan.item?.totalPrice ?? 0);
   const remaining = totalPrice - totalPaid;
 
   let status = "Pending";
+  if (totalPaid > 0 && remaining > 0) status = "Pending";
   if (remaining <= 0 && totalPrice > 0) status = "Completed";
 
   return { totalPaid, remaining, status };

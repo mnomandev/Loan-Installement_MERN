@@ -51,7 +51,7 @@ export const fetchLoans = createAsyncThunk(
   }
 );
 
-// ✅ Fetch Loan Stats (from DB middleware)
+// ✅ Fetch Loan Stats
 export const fetchLoanStats = createAsyncThunk(
   "loan/fetchStats",
   async (_, { rejectWithValue }) => {
@@ -70,7 +70,6 @@ export const fetchLoanStats = createAsyncThunk(
 );
 
 // ✅ Update Loan
-// ✅ Update Loan
 export const updateLoan = createAsyncThunk(
   "loan/update",
   async ({ id, formData = {} }, { rejectWithValue }) => {
@@ -80,9 +79,7 @@ export const updateLoan = createAsyncThunk(
         formData,
         { withCredentials: true }
       );
-
-      // Always return the loan object
-      return response.data.loan;
+      return response.data.loan; // server returns loan with totalPaid, remaining, status
     } catch (err) {
       return rejectWithValue(
         err.response?.data || { success: false, message: "Failed to update loan" }
@@ -90,6 +87,7 @@ export const updateLoan = createAsyncThunk(
     }
   }
 );
+
 // ✅ Delete Loan
 export const deleteLoan = createAsyncThunk(
   "loan/delete",
@@ -106,7 +104,7 @@ export const deleteLoan = createAsyncThunk(
       );
     }
   }
-);  
+);
 
 const loanSlice = createSlice({
   name: "loan",
@@ -156,9 +154,11 @@ const loanSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload?.message || "Failed to fetch loans";
       })
-       .addCase(fetchLoanStats.fulfilled, (state, action) => {
+
+      // ➡️ Fetch Loan Stats
+      .addCase(fetchLoanStats.fulfilled, (state, action) => {
         if (action.payload.success) {
-          state.loanStats = action.payload.data;
+          state.loanStats = action.payload.data; // only dashboard stats
         } else {
           state.error = action.payload.message;
         }
@@ -168,7 +168,7 @@ const loanSlice = createSlice({
       })
 
       // ➡️ Update Loan
-       .addCase(updateLoan.pending, (state) => {
+      .addCase(updateLoan.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })

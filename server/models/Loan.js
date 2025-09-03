@@ -52,16 +52,13 @@ const LoanSchema = new mongoose.Schema(
     installments: [installmentSchema],
 
     // ✅ Loan status to track at dashboard level
-    status: {
-      type: String,
-      enum: ["Pending", "Active", "Completed", "Defaulted"],
-      default: "Pending",
-      index: true, // fast queries for dashboard
-    },
+   status: {
+  type: String,
+  enum: ["Pending", "Completed"],
+  default: "Pending",
+  index: true,
+},
 
-    // ✅ Quick totals for dashboard
-    totalCollected: { type: Number, default: 0 },
-    totalOutstanding: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

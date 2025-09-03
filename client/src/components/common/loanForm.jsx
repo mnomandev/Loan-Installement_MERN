@@ -110,7 +110,7 @@ export default function LoanForm({ initial, onClose }) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white rounded-2xl shadow"
+      className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white rounded-2xl"
     >
       <h2 className="md:col-span-2 text-2xl font-semibold">
         Loan & Installment Form

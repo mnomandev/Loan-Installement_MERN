@@ -1,6 +1,5 @@
-// src/controllers/loanController.js
 const { Loan } = require("../models/Loan.js");
-const {calculateLoanStatus, normalizeDate} = require('../utils/loan-utils.js')
+const { calculateLoanStatus, normalizeDate } = require("../utils/loan-utils.js");
 
 // ✅ Dashboard stats controller
 const getLoanStats = async (req, res) => {
@@ -16,7 +15,7 @@ const getLoanStats = async (req, res) => {
       const { totalPaid, remaining, status } = calculateLoanStatus(loan);
       totalCollected += totalPaid;
       totalOutstanding += remaining;
-      if (status === "Pending") activeLoans++;
+     if (status === "Pending") activeLoans++;
     });
 
     res.json({
@@ -43,10 +42,14 @@ const addLoan = async (req, res) => {
       note: inst.note || "",
     }));
 
+    // Create loan
     const loan = new Loan({ ...body, installments });
-    await loan.save();
 
+    // Calculate derived fields
     const { totalPaid, remaining, status } = calculateLoanStatus(loan);
+    loan.status = status; // ✅ persist status
+
+    await loan.save();
 
     res.status(201).json({
       success: true,
@@ -118,7 +121,9 @@ const updateLoan = async (req, res) => {
   try {
     const { id } = req.params;
     if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ success: false, message: "Request body is empty" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Request body is empty" });
     }
 
     const cleanBody = JSON.parse(JSON.stringify(req.body));
@@ -160,6 +165,8 @@ const updateLoan = async (req, res) => {
     const updatedLoan = await loan.save();
 
     const { totalPaid, remaining, status } = calculateLoanStatus(updatedLoan);
+     updatedLoan.status = status; // ✅ persist to DB
+     await updatedLoan.save();
 
     return res.json({
       success: true,

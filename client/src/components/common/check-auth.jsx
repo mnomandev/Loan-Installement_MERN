@@ -1,26 +1,39 @@
 import { Navigate, useLocation } from "react-router-dom";
-
-
+import PropTypes from "prop-types";
 
 function CheckAuth({ isAuthenticated, user, children }) {
   const location = useLocation();
 
-  // If not logged in → redirect to login
-  if (!isAuthenticated && location.pathname !== "/auth/login" && location.pathname !== "/auth/register") {
+  // Agar login/register page pe nahi ho aur login bhi nahi hai → redirect to login
+  if (
+    !isAuthenticated &&
+    location.pathname !== "/auth/login" &&
+    location.pathname !== "/auth/register"
+  ) {
     return <Navigate to="/auth/login" />;
   }
 
-  // If logged in and tries to go to login/register → redirect to admin dashboard
-  if (isAuthenticated && (location.pathname === "/auth/login" || location.pathname === "/auth/register")) {
+  // Agar already login hai aur login/register page pe jaye → redirect to dashboard
+  if (
+    isAuthenticated &&
+    (location.pathname === "/auth/login" ||
+      location.pathname === "/auth/register")
+  ) {
     return <Navigate to="/admin/dashboard" />;
   }
 
-  // If logged in but role is not admin → block access
+  // Agar login hai lekin role admin nahi hai → unauthorized
   if (isAuthenticated && user?.role !== "admin") {
     return <Navigate to="/unauthorized" />;
   }
 
   return <>{children}</>;
 }
+
+CheckAuth.propTypes = {
+  isAuthenticated: PropTypes.bool.isRequired,
+  user: PropTypes.object,
+  children: PropTypes.node,
+};
 
 export default CheckAuth;

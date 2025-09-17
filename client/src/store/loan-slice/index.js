@@ -20,7 +20,7 @@ export const addLoan = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/loans/add-loan",
+        "http://localhost:5001/api/loans/add-loan",
         formData,
         { withCredentials: true }
       );
@@ -39,7 +39,7 @@ export const fetchLoans = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/loans/get-loans",
+        "http://localhost:5001/api/loans/get-loans",
         { withCredentials: true }
       );
       return response.data;
@@ -57,7 +57,7 @@ export const fetchLoanStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/loans/loan-stats",
+        "http://localhost:5001/api/loans/loan-stats",
         { withCredentials: true }
       );
       return response.data;
@@ -75,7 +75,7 @@ export const updateLoan = createAsyncThunk(
   async ({ id, formData = {} }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/loans/update-loan/${id}`,
+        `http://localhost:5001/api/loans/update-loan/${id}`,
         formData,
         { withCredentials: true }
       );
@@ -94,7 +94,7 @@ export const deleteLoan = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await axios.delete(
-        `http://localhost:5000/api/loans/delete-loan/${id}`,
+        `http://localhost:5001/api/loans/delete-loan/${id}`,
         { withCredentials: true }
       );
       return { id, ...response.data };

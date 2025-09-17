@@ -1,31 +1,37 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
 import AuthLayout from "./components/auth/layout";
-import AuthLogin from "./pages/auth/loign";  
+import AuthLogin from "./pages/auth/loign";
 import AuthRegister from "./pages/auth/register";
-import AdminLayout from "./components/Admin-View/layout"; // replace teacher/student layout
+import AdminLayout from "./components/Admin-View/layout";
 import AdminDashboard from "./pages/Admin-View/dashboard";
 import NotFound from "./pages/not-found";
 import CheckAuth from "./components/common/check-auth";
 import UnAuthPage from "./pages/unauth/unauthpage";
-import { useSelector, useDispatch } from "react-redux";
-import { checkAuth } from "./store/auth-slice";
-import { useEffect } from "react";
 import ManageLoans from "./pages/Admin-View/manage_loans";
 import LoansPage from "./pages/Admin-View/LoanPage";
+import { checkAuth } from "./store/auth-slice";
 
 function App() {
   const { isAuthenticated, user, isLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
+  // Sirf tabhi call karo jab cookie present ho
+  if (document.cookie.includes("token=")) {
     dispatch(checkAuth());
-  }, [dispatch]);
+  }
+}, [dispatch]);
 
   if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
       <Routes>
+        {/* Root → always redirect to login */}
+        <Route path="/" element={<Navigate to="/auth/login" />} />
+
         {/* Auth Routes */}
         <Route
           path="/auth"
@@ -36,7 +42,6 @@ function App() {
           }
         >
           <Route path="login" element={<AuthLogin />} />
-          {/* ⚠️ Keep register only for first setup, then disable */}
           <Route path="register" element={<AuthRegister />} />
         </Route>
 

@@ -5,6 +5,7 @@ const initialState = {
   isAuthenticated: false,
   isLoading: false,
   user: null,
+  hasCheckedAuth: false,  // 👈 new
 };
 
 // Register Admin (⚠️ only once, backend already blocks multiple)
@@ -123,11 +124,13 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
+        state.hasCheckedAuth = true;   // 👈 mark check done
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+        state.hasCheckedAuth = true;   // 👈 mark check done
       });
   }
 });

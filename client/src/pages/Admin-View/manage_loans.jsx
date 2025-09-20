@@ -33,8 +33,8 @@ const ManageLoans = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Top Bar */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="relative w-80">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           <input
             type="text"
@@ -55,8 +55,8 @@ const ManageLoans = () => {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
+      {/* ✅ Desktop Table */}
+      <div className="hidden md:block bg-white rounded-lg shadow p-4 overflow-x-auto">
         {isLoading ? (
           <p className="text-center text-gray-500">Loading loans...</p>
         ) : error ? (
@@ -106,7 +106,7 @@ const ManageLoans = () => {
                         </button>
                         <button
                           onClick={() => setDeleteLoanData(loan)}
-                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-gray-500 hover:bg-red-600 shadow transition"
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 shadow transition"
                         >
                           Delete
                         </button>
@@ -117,6 +117,49 @@ const ManageLoans = () => {
               )}
             </tbody>
           </table>
+        )}
+      </div>
+
+      {/* ✅ Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          <p className="text-center text-gray-500">Loading loans...</p>
+        ) : error ? (
+          <p className="text-center text-red-500">Error: {error}</p>
+        ) : filteredLoans.length === 0 ? (
+          <div className="text-center py-10 text-gray-400 flex flex-col items-center">
+            <Users className="h-10 w-10 mb-2" />
+            <span>No loans found</span>
+          </div>
+        ) : (
+          filteredLoans.map((loan, index) => {
+            const borrower = loan.borrower || {};
+            return (
+              <div key={index} className="bg-white shadow rounded-lg p-4 space-y-2">
+                <p><span className="font-semibold">Borrower:</span> {borrower.fullName || "N/A"}</p>
+                <p><span className="font-semibold">CNIC:</span> {borrower.cnic || "N/A"}</p>
+                <p><span className="font-semibold">Loan Amount:</span> {loan.item?.totalPrice || "N/A"}</p>
+                <p><span className="font-semibold">Monthly Payment:</span> {loan.monthlyInstallment || "-"}</p>
+                <p><span className="font-semibold">Total Paid:</span> {loan.totalPaid ?? 0}</p>
+                <p><span className="font-semibold">Remaining:</span> {loan.remaining ?? 0}</p>
+                <p><span className="font-semibold">Status:</span> {loan.status || "Pending"}</p>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => setEditLoan(loan)}
+                    className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 shadow transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setDeleteLoanData(loan)}
+                    className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 shadow transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 

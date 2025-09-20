@@ -14,17 +14,17 @@ import LoansPage from "./pages/Admin-View/LoanPage";
 import { checkAuth } from "./store/auth-slice";
 
 function App() {
-  const { isAuthenticated, user, isLoading } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, hasCheckedAuth  } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-  // Sirf tabhi call karo jab cookie present ho
-  if (document.cookie.includes("token=")) {
-    dispatch(checkAuth());
-  }
+useEffect(() => {
+  // Always ask backend if user is authenticated
+  dispatch(checkAuth());
 }, [dispatch]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (!hasCheckedAuth) {
+  return <div>Loading...</div>; // prevent redirect flicker
+}
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">

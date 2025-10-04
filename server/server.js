@@ -31,4 +31,9 @@ app.use("/api/auth", authRouter);
 app.use("/api/loans", loanRouter);  
 
 
-app.listen(PORT, ()=> console.log(`Server is running on port ${PORT}`));    
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
+// ✅ Export the app instead of listening
+module.exports = app;  

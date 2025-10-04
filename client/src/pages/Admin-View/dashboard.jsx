@@ -48,63 +48,72 @@ const AdminDashboard = () => {
 
   const COLORS = ["#6366F1", "#22C55E", "#F59E0B"];
 
-  if (isLoading) return <p className="p-6">Loading dashboard...</p>;
+  if (isLoading) return <p className="p-6 text-gray-600">Loading dashboard...</p>;
   if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      {/* Top Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white rounded-2xl shadow p-4 flex items-center gap-4 min-h-[100px]">
-          <DollarSign className="text-blue-500 w-8 h-8 shrink-0" />
-          <div>
-            <p className="text-sm text-gray-500">Total Loans</p>
-            <h3 className="text-xl font-bold">{loanStats?.totalLoans || 0}</h3>
+    <div className="p-4 md:p-6 space-y-5">
+      {/* === Top Stats === */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            title: "Total Loans",
+            value: loanStats?.totalLoans || 0,
+            icon: DollarSign,
+            color: "text-indigo-500",
+          },
+          {
+            title: "Collected",
+            value: `₨${(loanStats?.totalCollected || 0).toLocaleString()}`,
+            icon: TrendingUp,
+            color: "text-green-500",
+          },
+          {
+            title: "Outstanding",
+            value: `₨${(loanStats?.totalOutstanding || 0).toLocaleString()}`,
+            icon: Calendar,
+            color: "text-orange-500",
+          },
+          {
+            title: "Active Loans",
+            value: loanStats?.activeLoans || 0,
+            icon: Users,
+            color: "text-purple-500",
+          },
+        ].map(({ title, value, icon: Icon, color }, i) => (
+          <div
+            key={i}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-3 hover:shadow-md transition-all duration-200"
+          >
+            <Icon className={`${color} w-7 h-7 shrink-0`} />
+            <div>
+              <p className="text-xs font-medium text-gray-500">{title}</p>
+              <h3 className="text-lg font-semibold text-gray-800 mt-1">{value}</h3>
+            </div>
           </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-4 flex items-center gap-4 min-h-[100px]">
-          <TrendingUp className="text-green-500 w-8 h-8 shrink-0" />
-          <div>
-            <p className="text-sm text-gray-500">Collected</p>
-            <h3 className="text-xl font-bold">₨{(loanStats?.totalCollected || 0).toLocaleString()}</h3>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-4 flex items-center gap-4 min-h-[100px]">
-          <Calendar className="text-orange-500 w-8 h-8 shrink-0" />
-          <div>
-            <p className="text-sm text-gray-500">Outstanding</p>
-            <h3 className="text-xl font-bold">₨{(loanStats?.totalOutstanding || 0).toLocaleString()}</h3>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-4 flex items-center gap-4 min-h-[100px]">
-          <Users className="text-purple-500 w-8 h-8 shrink-0" />
-          <div>
-            <p className="text-sm text-gray-500">Active Loans</p>
-            <h3 className="text-xl font-bold">{loanStats?.activeLoans || 0}</h3>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* === Charts Section === */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Monthly Collections */}
-        <div className="bg-white rounded-2xl shadow p-6 min-h-[350px]">
-          <h2 className="text-lg font-semibold mb-4">Monthly Collections</h2>
-          <ResponsiveContainer width="100%" height={280}>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Monthly Collections</h2>
+          <ResponsiveContainer width="100%" height={260}>
             <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => `₨${value}`} />
-              <Tooltip formatter={(value) => [`₨${value}`, "Collected"]} />
-              <Bar dataKey="amount" fill="#6366F1" radius={[6, 6, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+              <YAxis tickFormatter={(v) => `₨${v}`} tick={{ fontSize: 12 }} />
+              <Tooltip formatter={(v) => [`₨${v}`, "Collected"]} />
+              <Bar dataKey="amount" fill="#6366F1" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Loan Status Distribution */}
-        <div className="bg-white rounded-2xl shadow p-6 min-h-[350px]">
-          <h2 className="text-lg font-semibold mb-4">Loan Status Distribution</h2>
-          <ResponsiveContainer width="100%" height={280}>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Loan Status Distribution</h2>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie
                 data={loanStatusData}
@@ -113,10 +122,10 @@ const AdminDashboard = () => {
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
-                label
+                label={({ name, value }) => `${name} (${value})`}
               >
-                {loanStatusData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                {loanStatusData.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
               <Legend />
@@ -125,16 +134,16 @@ const AdminDashboard = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Loan Amounts vs Payments (Full Width on Mobile, Half on LG) */}
-        <div className="bg-white rounded-2xl shadow p-6 min-h-[350px] lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Loan Amounts vs Payments</h2>
-          <ResponsiveContainer width="100%" height={280}>
+        {/* Loan Amounts vs Payments */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2">
+          <h2 className="text-base font-semibold text-gray-800 mb-4">Loan Amounts vs Payments</h2>
+          <ResponsiveContainer width="100%" height={260}>
             <BarChart data={paymentsData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis tickFormatter={(value) => `₨${value}`} />
-              <Tooltip formatter={(value) => [`₨${value}`, "Amount"]} />
-              <Bar dataKey="value" fill="#22C55E" radius={[6, 6, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis tickFormatter={(v) => `₨${v}`} tick={{ fontSize: 12 }} />
+              <Tooltip formatter={(v) => [`₨${v}`, "Amount"]} />
+              <Bar dataKey="value" fill="#22C55E" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

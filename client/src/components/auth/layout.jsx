@@ -7,10 +7,10 @@ function AuthLayout() {
       {/* Left Gradient Section */}
       <div className="hidden lg:flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 w-1/2 px-16 text-white">
         <div className="max-w-md space-y-10 text-center">
-          <h1 className="text-5xl font-extrabold tracking-tight leading-snug">
+          <h1 className="text-3xl font-extrabold tracking-tight leading-snug">
             Loan & Installment Management System
           </h1>
-          <p className="text-xl opacity-95 font-medium leading-relaxed">
+          <p className="text-sm opacity-95 font-medium leading-relaxed">
             Simplify your loan tracking, manage installments, and stay on top of
             repayments — all in one secure platform.
           </p>

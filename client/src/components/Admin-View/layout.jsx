@@ -8,20 +8,16 @@ function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
       <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex flex-1 flex-col md:pl-64">
-        {/* Header */}
+      {/* Main Section */}
+      <div className="flex flex-1 flex-col md:pl-60">
         <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
-
-        {/* Main Content */}
-        <main className="flex-1 flex-col flex bg-muted/40 p-4 md:p-6 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
           <Outlet />
         </main>
-
-        {/* Footer */}
         <Footer />
       </div>
     </div>

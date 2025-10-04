@@ -12,7 +12,7 @@ function LogoutModal({ isOpen, onClose }) {
   const handleLogout = async () => {
     try {
       await axios.post(
-        "http://localhost:5001/api/auth/logout",
+        "https://loan-backend-mu.vercel.app/api/auth/logout",
         {},
         { withCredentials: true }
       );

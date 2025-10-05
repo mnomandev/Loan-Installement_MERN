@@ -8,10 +8,17 @@ const loanRouter = require('./routes/loan/loan-routes');
 
 dotenv.config();
 
-// MongoDB connection using environment variable
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log("MongoDB connected"))
-    .catch((error) => console.log("MongoDB connection error:", error));
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    process.exit(1);
+  }
+};
+
+connectDB();
 
 const app = express();
 

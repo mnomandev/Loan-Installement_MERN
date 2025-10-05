@@ -27,16 +27,19 @@ const PORT = process.env.PORT || 5001;
 app.use(
     cors({
          origin: [
-      "http://localhost:5173",
-      "https://loaninstallment.netlify.app",
+    "https://loaninstallment.netlify.app",  // ✅ exact frontend domain
+      "http://localhost:5173"                 // for local dev
     ],
+        credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Expires", "Pragma"],
-        credentials: true,
+       
     }))
 
 app.use(cookieParser());
 app.use(express.json());
+
+// Use the routers
 app.use("/api/auth", authRouter);
 app.use("/api/loans", loanRouter);  
 

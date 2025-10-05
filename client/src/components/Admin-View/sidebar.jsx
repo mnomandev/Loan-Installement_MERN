@@ -7,7 +7,7 @@ const AdminSidebar = ({ open, onClose }) => {
     <>
       {/* Overlay for mobile */}
       <div
-        className={`fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity ${
+        className={`fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-300 ${
           open ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         onClick={onClose}
@@ -16,7 +16,7 @@ const AdminSidebar = ({ open, onClose }) => {
       {/* Sidebar */}
       <div
         className={`fixed left-0 top-0 h-screen w-60 bg-gray-900 text-white flex flex-col shadow-xl z-50 transform transition-transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:flex`}
+        ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Header */}
         <div className="p-4 flex justify-between items-center border-b border-gray-700">

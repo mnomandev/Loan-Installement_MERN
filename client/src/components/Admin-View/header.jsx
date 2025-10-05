@@ -15,7 +15,7 @@ function AdminHeader({ onMenuClick }) {
       {/* Left: Menu button */}
       <div className="flex items-center">
         <Menu
-          className="h-6 w-6 text-gray-600 cursor-pointer hover:text-indigo-600 md:hidden"
+          className="h-6 w-6 text-gray-600 cursor-pointer hover:text-indigo-600 transition"
           onClick={onMenuClick}
         />
       </div>

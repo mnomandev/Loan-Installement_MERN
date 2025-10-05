@@ -12,7 +12,6 @@ const initialState = {
     password: "",
 }
 
-
 function AuthLogin() {
     const [formData, setFormData] = useState(initialState);
     const dispatch = useDispatch();

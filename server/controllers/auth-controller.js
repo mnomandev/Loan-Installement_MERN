@@ -79,8 +79,15 @@ const loginUser = async (req, res) => {
       { expiresIn: "60m" }
     );
 
+    // ✅ Always use consistent cookie settings for cross-site cookies
     res
-      .cookie("token", token, { httpOnly: true, secure: false })
+      .cookie("token", token, {
+        httpOnly: true,        // prevent JS access (XSS protection)
+        secure: true,          // must be true for HTTPS (Vercel/Netlify)
+        sameSite: "none",      // allow cross-site cookies
+        path: "/",             // cookie visible to all routes
+        maxAge: 60 * 60 * 1000 // 1 hour
+      })
       .json({
         success: true,
         message: "Admin logged in successfully",
@@ -100,12 +107,18 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Logout
+// ✅ Logout (must match the same options)
 const logoutUser = (req, res) => {
-  res.clearCookie("token").json({
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: "/",
+  }).json({
     success: true,
     message: "Logged out successfully!",
   });
 };
+
 
 module.exports = { registerUser, loginUser, logoutUser };
